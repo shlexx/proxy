@@ -17,4 +17,8 @@ app.post('/send', async (req, res) => {
   }
 });
 
+app.get('/', (req, res) => {
+  res.send('OK');
+});
+
 app.listen(3000, () => console.log('Proxy running'));
