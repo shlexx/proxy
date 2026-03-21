@@ -1,9 +1,8 @@
-// server.js
 const express = require('express');
 const app = express();
 app.use(express.json());
 
-const WEBHOOK_URL = process.env.WEBHOOK_URL; // store your Discord webhook URL as an env var
+const WEBHOOK_URL = process.env.WEBHOOK_URL;
 
 app.post('/send', async (req, res) => {
   try {
