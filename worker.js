@@ -1,8 +1,8 @@
 export default {
   async fetch(request, env) {
+    const url = new URL(request.url);
+
     if (request.method === 'GET') {
-      const url = new URL(request.url);
-      
       if (url.pathname === '/avatar') {
         const userId = url.searchParams.get('userId');
         const response = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png`);
@@ -14,7 +14,7 @@ export default {
       return new Response('OK');
     }
 
-    if (request.method === 'POST' && new URL(request.url).pathname === '/send') {
+    if (request.method === 'POST' && url.pathname === '/send') {
       try {
         const body = await request.json();
         const response = await fetch(env.WEBHOOK_URL, {
@@ -22,9 +22,7 @@ export default {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body)
         });
-        const text = await response.text();
-        console.log("Discord status:", response.status, "Body:", text);
-        return new Response(text, { status: response.status });
+        return new Response(null, { status: response.status });
       } catch (err) {
         console.log("Error:", err.message);
         return new Response(JSON.stringify({ error: err.message }), { status: 500 });
