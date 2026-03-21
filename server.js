@@ -44,9 +44,18 @@ async function processQueue() {
 
 app.get('/', (req, res) => res.send('OK'));
 
-app.post('/send', (req, res) => {
-    queue.push({ body: req.body, res });
-    processQueue();
+app.post('/send', async (req, res) => {
+  try {
+    const response = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+    res.sendStatus(response.status);
+  } catch (err) {
+    console.error("Error:", err.message); // add this
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.listen(3000, () => console.log('Proxy running'));
