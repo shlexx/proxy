@@ -14,8 +14,12 @@ export default {
           body: JSON.stringify(body)
         });
 
-        return new Response(null, { status: response.status });
+        const text = await response.text();
+        console.log("Discord status:", response.status, "Body:", text);
+
+        return new Response(text, { status: response.status });
       } catch (err) {
+        console.log("Error:", err.message);
         return new Response(JSON.stringify({ error: err.message }), { status: 500 });
       }
     }
