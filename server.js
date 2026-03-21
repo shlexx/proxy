@@ -1,26 +1,25 @@
-const express = require('express');
-const app = express();
-app.use(express.json());
+export default {
+  async fetch(request, env) {
+    if (request.method === 'GET') {
+      return new Response('OK');
+    }
 
-const WEBHOOK_URL = process.env.WEBHOOK_URL;
+    if (request.method === 'POST' && new URL(request.url).pathname === '/send') {
+      try {
+        const body = await request.json();
 
-app.get('/', (req, res) => {
-  res.send('OK');
-});
+        const response = await fetch(env.WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
 
-app.post('/send', async (req, res) => {
-  try {
-    const response = await fetch(WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req.body)
-    });
-    console.log("Discord response status:", response.status);
-    res.sendStatus(response.status);
-  } catch (err) {
-    console.error("Error:", err.message);
-    res.status(500).json({ error: err.message });
+        return new Response(null, { status: response.status });
+      } catch (err) {
+        return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+      }
+    }
+
+    return new Response('Not Found', { status: 404 });
   }
-});
-
-app.listen(3000, () => console.log('Proxy running'));
+};
