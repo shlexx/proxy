@@ -78,6 +78,14 @@ export default {
         return new Response(JSON.stringify(data), { status: 200 });
       }
 
+      if (url.pathname === '/deleteglobal') {
+        const response = await fetch(`https://discord.com/api/v10/applications/${env.APPLICATION_ID}/commands/1485210139089961061`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bot ${env.BOT_TOKEN}` }
+        });
+        return new Response('Deleted: ' + response.status);
+      }
+
       return new Response('OK');
     }
 
