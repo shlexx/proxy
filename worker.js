@@ -69,6 +69,15 @@ export default {
         return new Response('');
       }
 
+      if (url.pathname === '/cleanup') {
+        const response = await fetch(`https://discord.com/api/v10/applications/${env.APPLICATION_ID}/commands`, {
+          method: 'GET',
+          headers: { 'Authorization': `Bot ${env.BOT_TOKEN}` }
+        });
+        const data = await response.json();
+        return new Response(JSON.stringify(data), { status: 200 });
+      }
+
       return new Response('OK');
     }
 
@@ -110,15 +119,6 @@ export default {
         console.log("Error:", err.message);
         return new Response(JSON.stringify({ error: err.message }), { status: 500 });
       }
-    }
-
-    if (url.pathname === '/cleanup') {
-      const response = await fetch(`https://discord.com/api/v10/applications/${env.APPLICATION_ID}/commands`, {
-        method: 'GET',
-        headers: { 'Authorization': `Bot ${env.BOT_TOKEN}` }
-      });
-      const data = await response.json();
-      return new Response(JSON.stringify(data), { status: 200 });
     }
 
     return new Response('Not Found', { status: 404 });
