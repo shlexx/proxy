@@ -83,7 +83,7 @@ export default {
 
         return new Response(JSON.stringify({
           type: 4,
-          data: { content: `✅ Sent to Roblox: ${message}` }
+          data: { content: `sent: ${message}` }
         }), { headers: { 'Content-Type': 'application/json' } });
       }
     }
