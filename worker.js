@@ -16,6 +16,35 @@ export default {
       return data.result;
     }
 
+    async function verifyRequest(req) {
+      const signature = req.headers.get('x-signature-ed25519');
+      const timestamp = req.headers.get('x-signature-timestamp');
+      const body = await req.text();
+
+      if (!signature || !timestamp) return { valid: false, body };
+
+      const key = await crypto.subtle.importKey(
+        'raw',
+        hexToBuffer(env.PUBLIC_KEY),
+        { name: 'NODE-ED25519', namedCurve: 'NODE-ED25519' },
+        false,
+        ['verify']
+      );
+
+      const valid = await crypto.subtle.verify(
+        'NODE-ED25519',
+        key,
+        hexToBuffer(signature),
+        new TextEncoder().encode(timestamp + body)
+      );
+
+      return { valid, body };
+    }
+
+    function hexToBuffer(hex) {
+      return new Uint8Array(hex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
+    }
+
     if (request.method === 'GET') {
       if (url.pathname === '/avatar') {
         const userId = url.searchParams.get('userId');
@@ -27,9 +56,7 @@ export default {
 
       if (url.pathname === '/poll') {
         const message = await redisGet();
-        if (message) {
-          return new Response(message);
-        }
+        if (message) return new Response(message);
         return new Response('');
       }
 
@@ -37,17 +64,20 @@ export default {
     }
 
     if (request.method === 'POST' && url.pathname === '/interaction') {
-      const body = await request.json();
+      const { valid, body } = await verifyRequest(request);
+      if (!valid) return new Response('Unauthorized', { status: 401 });
 
-      if (body.type === 1) {
+      const interaction = JSON.parse(body);
+
+      if (interaction.type === 1) {
         return new Response(JSON.stringify({ type: 1 }), {
           headers: { 'Content-Type': 'application/json' }
         });
       }
 
-      if (body.type === 2) {
-        const message = body.data.options[0].value;
-        const username = body.member?.user?.username || body.user?.username;
+      if (interaction.type === 2) {
+        const message = interaction.data.options[0].value;
+        const username = interaction.member?.user?.username || interaction.user?.username;
 
         ctx.waitUntil(redisSet(JSON.stringify({ username, message })));
 
