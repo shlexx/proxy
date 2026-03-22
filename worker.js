@@ -12,11 +12,11 @@ export default {
       }
 
       if (url.pathname === '/register') {
-        const response = await fetch(`https://discord.com/api/v10/applications/YOUR_APPLICATION_ID/commands`, {
+        const response = await fetch(`https://discord.com/api/v10/applications/1485206836096405525/commands`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bot YOUR_BOT_TOKEN'
+            'Authorization': 'Bot MTQ4NTIwNjgzNjA5NjQwNTUyNQ.GbJBZY.moRnYc7ydD8e944_MiNzP4tVWp276knyYAHeMM'
           },
           body: JSON.stringify({
             name: 'send',
