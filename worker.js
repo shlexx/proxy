@@ -112,6 +112,15 @@ export default {
       }
     }
 
+    if (url.pathname === '/cleanup') {
+      const response = await fetch(`https://discord.com/api/v10/applications/${env.APPLICATION_ID}/commands`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bot ${env.BOT_TOKEN}` }
+      });
+      const data = await response.json();
+      return new Response(JSON.stringify(data), { status: 200 });
+    }
+
     return new Response('Not Found', { status: 404 });
   }
 };
