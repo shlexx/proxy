@@ -1,6 +1,20 @@
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
+
+    async function redisSet(value) {
+      await fetch(`${env.UPSTASH_URL}/set/latest/${encodeURIComponent(value)}`, {
+        headers: { Authorization: `Bearer ${env.UPSTASH_TOKEN}` }
+      });
+    }
+
+    async function redisGet() {
+      const res = await fetch(`${env.UPSTASH_URL}/getdel/latest`, {
+        headers: { Authorization: `Bearer ${env.UPSTASH_TOKEN}` }
+      });
+      const data = await res.json();
+      return data.result;
+    }
 
     if (request.method === 'GET') {
       if (url.pathname === '/avatar') {
@@ -12,9 +26,8 @@ export default {
       }
 
       if (url.pathname === '/poll') {
-        const message = await env.MESSAGES.get('latest');
+        const message = await redisGet();
         if (message) {
-          await env.MESSAGES.delete('latest');
           return new Response(message);
         }
         return new Response('');
@@ -36,7 +49,7 @@ export default {
         const message = body.data.options[0].value;
         const username = body.member?.user?.username || body.user?.username;
 
-        await env.MESSAGES.put('latest', JSON.stringify({ username, message }));
+        ctx.waitUntil(redisSet(JSON.stringify({ username, message })));
 
         return new Response(JSON.stringify({
           type: 4,
