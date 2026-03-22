@@ -16,7 +16,7 @@ export default {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bot MTQ4NTIwNjgzNjA5NjQwNTUyNQ.GbJBZY.moRnYc7ydD8e944_MiNzP4tVWp276knyYAHeMM'
+            'Authorization': 'Bot MTQ4NTIwNjgzNjA5NjQwNTUyNQ.GcgwxT.ijGjBb0PNyTqxYeBQ0TGZG4VEScKJtWnODkUaw'
           },
           body: JSON.stringify({
             name: 'send',
