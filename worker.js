@@ -11,6 +11,28 @@ export default {
         return new Response(imageUrl);
       }
 
+      if (url.pathname === '/register') {
+        const response = await fetch(`https://discord.com/api/v10/applications/YOUR_APPLICATION_ID/commands`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bot YOUR_BOT_TOKEN'
+          },
+          body: JSON.stringify({
+            name: 'send',
+            description: 'Send a message to Roblox',
+            options: [{
+              name: 'message',
+              description: 'The message to send',
+              type: 3,
+              required: true
+            }]
+          })
+        });
+        const data = await response.json();
+        return new Response(JSON.stringify(data), { status: 200 });
+      }
+
       return new Response('OK');
     }
 
