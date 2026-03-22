@@ -1,3 +1,5 @@
+import { verifyKey } from 'discord-interactions';
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -9,6 +11,46 @@ export default {
         const data = await response.json();
         const imageUrl = data?.data?.[0]?.imageUrl || '';
         return new Response(imageUrl);
+      }
+
+      if (url.pathname === '/poll') {
+        const message = await env.MESSAGES.get('latest');
+        if (message) {
+          await env.MESSAGES.delete('latest');
+          return new Response(message);
+        }
+        return new Response('');
+      }
+
+      return new Response('OK');
+    }
+
+    if (request.method === 'POST' && url.pathname === '/interaction') {
+      const signature = request.headers.get('x-signature-ed25519');
+      const timestamp = request.headers.get('x-signature-timestamp');
+      const body = await request.text();
+
+      const isValid = await verifyKey(body, signature, timestamp, env.PUBLIC_KEY);
+      if (!isValid) return new Response('Unauthorized', { status: 401 });
+
+      const interaction = JSON.parse(body);
+
+      if (interaction.type === 1) {
+        return new Response(JSON.stringify({ type: 1 }), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+
+      if (interaction.type === 2) {
+        const message = interaction.data.options[0].value;
+        const username = interaction.member?.user?.username || interaction.user?.username;
+
+        await env.MESSAGES.put('latest', JSON.stringify({ username, message }));
+
+        return new Response(JSON.stringify({
+          type: 4,
+          data: { content: `✅ Sent to Roblox: ${message}` }
+        }), { headers: { 'Content-Type': 'application/json' } });
       }
     }
 
