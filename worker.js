@@ -1,4 +1,29 @@
-import { verifyKey } from 'discord-interactions';
+async function verifyDiscordRequest(request, publicKey) {
+  const signature = request.headers.get('x-signature-ed25519');
+  const timestamp = request.headers.get('x-signature-timestamp');
+  const body = await request.text();
+
+  const key = await crypto.subtle.importKey(
+    'raw',
+    hexToBuffer(publicKey),
+    { name: 'NODE-ED25519', namedCurve: 'NODE-ED25519' },
+    false,
+    ['verify']
+  );
+
+  const isValid = await crypto.subtle.verify(
+    'NODE-ED25519',
+    key,
+    hexToBuffer(signature),
+    new TextEncoder().encode(timestamp + body)
+  );
+
+  return { isValid, body };
+}
+
+function hexToBuffer(hex) {
+  return new Uint8Array(hex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
+}
 
 export default {
   async fetch(request, env) {
@@ -48,11 +73,7 @@ export default {
     }
 
     if (request.method === 'POST' && url.pathname === '/interaction') {
-      const signature = request.headers.get('x-signature-ed25519');
-      const timestamp = request.headers.get('x-signature-timestamp');
-      const body = await request.text();
-
-      const isValid = await verifyKey(body, signature, timestamp, env.PUBLIC_KEY);
+      const { isValid, body } = await verifyDiscordRequest(request, env.PUBLIC_KEY);
       if (!isValid) return new Response('Unauthorized', { status: 401 });
 
       const interaction = JSON.parse(body);
